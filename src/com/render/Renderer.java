@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 public class Renderer {
 
-    ArrayList<Triangle> tris = new ArrayList<>();
+//    ArrayList<Triangle> tris = new ArrayList<>();
 //    double heading = Math.toRadians(headingSlider.getValue());
 
     public static void main(String[] args) {
@@ -143,13 +143,12 @@ public class Renderer {
                                 double depth = b1 * v1.z + b2 * v2.z + b3 * v3.z;
                                 int zIndex = y * img.getWidth() + x;
                                 if (zBuffer[zIndex] < depth) {
-                                    img.setRGB(x, y, getShade(t.color, angleCos).getRGB());
+                                    img.setRGB(x, y, Shades.getShade(t.color, angleCos).getRGB());
                                     zBuffer[zIndex] = depth;
                                 }
                             }
                         }
                     }
-
                     g2.drawImage(img, -getWidth() / 2, -getHeight() / 2, null);
                 }
             }
@@ -175,17 +174,6 @@ public class Renderer {
         });
     }
 
-    public static Color getShade(Color color, double shade) {
-        double redLinear = Math.pow(color.getRed(), 2.4 * shade);
-        double greenLinear = Math.pow(color.getGreen(), 2.4 * shade);
-        double blueLinear = Math.pow(color.getBlue(), 2.4 * shade);
-
-        int red = (int) Math.pow(redLinear, 1 / 2.4);
-        int green = (int) Math.pow(greenLinear, 1 / 2.4);
-        int blue = (int) Math.pow(blueLinear, 1 / 2.4);
-
-        return new Color(red, green, blue);
-    }
 
     public static ArrayList inflate(ArrayList<Triangle> tris) {
         ArrayList<Triangle> result = new ArrayList<>();
@@ -269,11 +257,11 @@ public class Renderer {
         ArrayList<Triangle> result = new ArrayList<>();
         for (Triangle t : polygon) {
             Vertex m1 =
-                    new Vertex((t.v1.x ) / 2, (t.v1.y ) / 2, (t.v1.z ) / 2);
+                    new Vertex((t.v1.x) / 2, (t.v1.y) / 2, (t.v1.z) / 2);
             Vertex m2 =
-                    new Vertex((t.v2.x ) / 2, (t.v2.y ) / 2, (t.v2.z ) / 2);
+                    new Vertex((t.v2.x) / 2, (t.v2.y) / 2, (t.v2.z) / 2);
             Vertex m3 =
-                    new Vertex((t.v3.x ) / 2, (t.v3.y ) / 2, (t.v3.z ) / 2);
+                    new Vertex((t.v3.x) / 2, (t.v3.y) / 2, (t.v3.z) / 2);
             result.add(new Triangle(m1, m2, m3, t.color));
             result.add(t.mirror(t));
 //            result.add(t.XAxis(t));
