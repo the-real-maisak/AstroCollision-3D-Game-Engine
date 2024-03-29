@@ -60,7 +60,7 @@ public class Renderer {
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setColor(Color.DARK_GRAY);
                 g2.fillRect(0, 0, getWidth(), getHeight());
-                // рендер (и скорее всего отрисовка) происходят здесь
+                // отрисовка происходит здесь
 
                 double heading = Math.toRadians(headingSlider.getValue());
                 Matrix3 headingTransform = new Matrix3(new double[]{Math.cos(heading), 0, Math.sin(heading),
@@ -84,6 +84,7 @@ public class Renderer {
                     zBuffer[q] = Double.NEGATIVE_INFINITY;
                 }
 
+                // создание фигуры
                 ArrayList<Triangle> figure = sphere(tris, 4);
 
                 for (Triangle t : figure) {
