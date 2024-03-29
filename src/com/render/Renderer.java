@@ -106,13 +106,16 @@ public class Renderer {
                     double angleCos = Math.abs(norm.z);
 
 
-                    // рендер чере 2Д графику
+                    // рендер граней треугольника через 2Д графику
+                    /*
                     Path2D path = new Path2D.Double();
                     path.moveTo(v1.x, v1.y);
                     path.lineTo(v2.x, v2.y);
                     path.lineTo(v3.x, v3.y);
                     path.closePath();
                     g2.draw(path);
+                     */
+
 
                     // ручная трансляция без 2D графики
                     v1.x += getWidth() / 2;
@@ -122,7 +125,7 @@ public class Renderer {
                     v3.x += getWidth() / 2;
                     v3.y += getHeight() / 2;
 
-                    // расчёт граней треугольника
+                    // расчёт и текстурирование треугольников
                     int minX = (int) Math.max(0, Math.ceil(Math.min(v1.x, Math.min(v2.x, v3.x))));
                     int maxX = (int) Math.min(img.getWidth() - 1, Math.floor(Math.max(v1.x, Math.max(v2.x, v3.x))));
                     int minY = (int) Math.max(0, Math.ceil(Math.min(v1.y, Math.min(v2.y, v3.y))));
