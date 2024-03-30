@@ -87,7 +87,7 @@ public class Renderer {
                 }
 
                 // создание фигуры
-                ArrayList<Triangle> figure = sphere(tris, 4);
+                ArrayList<Triangle> figure = tris;
 
                 for (Triangle t : figure) {
                     Vertex v1 = transform.transform(t.v1);
@@ -138,40 +138,40 @@ public class Renderer {
 
 
                     ExecutorService executor = Executors.newFixedThreadPool(2);
-                executor.submit(() -> {
-                            for (int y = minY; y <= maxY; y += 2) {
-                                for (int x = minX; x <= maxX; x++) {
-                                    double b1 = ((y - v3.y) * (v2.x - v3.x) + (v2.y - v3.y) * (v3.x - x)) / triangleArea;
-                                    double b2 = ((y - v1.y) * (v3.x - v1.x) + (v3.y - v1.y) * (v1.x - x)) / triangleArea;
-                                    double b3 = ((y - v2.y) * (v1.x - v2.x) + (v1.y - v2.y) * (v2.x - x)) / triangleArea;
-                                    if (b1 >= 0 && b1 <= 1 && b2 >= 0 && b2 <= 1 && b3 >= 0 && b3 <= 1) {
-                                        double depth = b1 * v1.z + b2 * v2.z + b3 * v3.z;
-                                        int zIndex = y * img.getWidth() + x;
-                                        if (zBuffer[zIndex] < depth) {
-                                            img.setRGB(x, y, Shades.getShade(t.color, angleCos).getRGB());
-                                            zBuffer[zIndex] = depth;
-                                        }
+                    executor.submit(() -> {
+                        for (int y = minY; y <= maxY; y += 2) {
+                            for (int x = minX; x <= maxX; x++) {
+                                double b1 = ((y - v3.y) * (v2.x - v3.x) + (v2.y - v3.y) * (v3.x - x)) / triangleArea;
+                                double b2 = ((y - v1.y) * (v3.x - v1.x) + (v3.y - v1.y) * (v1.x - x)) / triangleArea;
+                                double b3 = ((y - v2.y) * (v1.x - v2.x) + (v1.y - v2.y) * (v2.x - x)) / triangleArea;
+                                if (b1 >= 0 && b1 <= 1 && b2 >= 0 && b2 <= 1 && b3 >= 0 && b3 <= 1) {
+                                    double depth = b1 * v1.z + b2 * v2.z + b3 * v3.z;
+                                    int zIndex = y * img.getWidth() + x;
+                                    if (zBuffer[zIndex] < depth) {
+                                        img.setRGB(x, y, Shades.getShade(t.color, angleCos).getRGB());
+                                        zBuffer[zIndex] = depth;
                                     }
                                 }
                             }
+                        }
                     });
 
                     executor.submit(() -> {
-                            for (int y = minY+1; y <= maxY; y += 2) {
-                                for (int x = minX; x <= maxX; x++) {
-                                    double b1 = ((y - v3.y) * (v2.x - v3.x) + (v2.y - v3.y) * (v3.x - x)) / triangleArea;
-                                    double b2 = ((y - v1.y) * (v3.x - v1.x) + (v3.y - v1.y) * (v1.x - x)) / triangleArea;
-                                    double b3 = ((y - v2.y) * (v1.x - v2.x) + (v1.y - v2.y) * (v2.x - x)) / triangleArea;
-                                    if (b1 >= 0 && b1 <= 1 && b2 >= 0 && b2 <= 1 && b3 >= 0 && b3 <= 1) {
-                                        double depth = b1 * v1.z + b2 * v2.z + b3 * v3.z;
-                                        int zIndex = y * img.getWidth() + x;
-                                        if (zBuffer[zIndex] < depth) {
-                                            img.setRGB(x, y, Shades.getShade(t.color, angleCos).getRGB());
-                                            zBuffer[zIndex] = depth;
-                                        }
+                        for (int y = minY + 1; y <= maxY; y += 2) {
+                            for (int x = minX; x <= maxX; x++) {
+                                double b1 = ((y - v3.y) * (v2.x - v3.x) + (v2.y - v3.y) * (v3.x - x)) / triangleArea;
+                                double b2 = ((y - v1.y) * (v3.x - v1.x) + (v3.y - v1.y) * (v1.x - x)) / triangleArea;
+                                double b3 = ((y - v2.y) * (v1.x - v2.x) + (v1.y - v2.y) * (v2.x - x)) / triangleArea;
+                                if (b1 >= 0 && b1 <= 1 && b2 >= 0 && b2 <= 1 && b3 >= 0 && b3 <= 1) {
+                                    double depth = b1 * v1.z + b2 * v2.z + b3 * v3.z;
+                                    int zIndex = y * img.getWidth() + x;
+                                    if (zBuffer[zIndex] < depth) {
+                                        img.setRGB(x, y, Shades.getShade(t.color, angleCos).getRGB());
+                                        zBuffer[zIndex] = depth;
                                     }
                                 }
                             }
+                        }
                     });
                     executor.shutdown();
 
