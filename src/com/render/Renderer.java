@@ -7,37 +7,73 @@ import java.awt.event.WindowEvent;
 import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Arrays;
+import java.util.Comparator;
 
 public class Renderer {
 
 //    ArrayList<Triangle> tris = new ArrayList<>();
 //    double heading = Math.toRadians(headingSlider.getValue());
 
+//    private Thread thread;
+//    boolean isRunning = false;
+//
+//    private void start() {
+//        if (isRunning)
+//            return;
+//        isRunning = true;
+//        thread = new Thread(this.thread);
+//        thread.start();
+//    }
+//
+//    private void stop() {
+//        if (!isRunning)
+//            return;
+//        isRunning = false;
+//        try {
+//            thread.join();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//            System.exit(0);
+//        }
+//    }
+//
+//    public void run() {
+//        while (isRunning) {
+//
+//        }
+//    }
+
     public static void main(String[] args) {
 
 
-        ArrayList<Triangle> tris = new ArrayList<>();
-        tris.add(new Triangle(new Vertex(100, 100, 100),
-                new Vertex(-100, -100, 100),
-                new Vertex(-100, 100, -100),
-                Color.WHITE));
-
-        tris.add(new Triangle(new Vertex(100, 100, 100),
-                new Vertex(-100, -100, 100),
-                new Vertex(100, -100, -100),
-                Color.RED));
-
-        tris.add(new Triangle(new Vertex(-100, 100, -100),
-                new Vertex(100, -100, -100),
-                new Vertex(100, 100, 100),
-                Color.BLUE));
-
-        tris.add(new Triangle(new Vertex(-100, 100, -100),
-                new Vertex(100, -100, -100),
-                new Vertex(-100, -100, 100),
-                Color.YELLOW));
+        // создание фигуры
+        ParseObj obj = new ParseObj();
+        obj.parse();
+        ArrayList<Triangle> figure = obj.getTriangles();
+//        ArrayList<Triangle> figure = new ArrayList<Triangle>() {
+//            {
+//                add(new Triangle(new Vertex(100, 100, 100),
+//                        new Vertex(-100, -100, 100),
+//                        new Vertex(-100, 100, -100),
+//                        Color.WHITE));
+//
+//                add(new Triangle(new Vertex(100, 100, 100),
+//                        new Vertex(-100, -100, 100),
+//                        new Vertex(100, -100, -100),
+//                        Color.RED));
+//
+//                add(new Triangle(new Vertex(-100, 100, -100),
+//                        new Vertex(100, -100, -100),
+//                        new Vertex(100, 100, 100),
+//                        Color.BLUE));
+//
+//                add(new Triangle(new Vertex(-100, 100, -100),
+//                        new Vertex(100, -100, -100),
+//                        new Vertex(-100, -100, 100),
+//                        Color.YELLOW));
+//            }
+//        };
 
 
         JFrame frame = new JFrame();
@@ -74,7 +110,7 @@ public class Renderer {
                         0, Math.cos(pitch), Math.sin(pitch),
                         0, -Math.sin(pitch), Math.cos(pitch)});
                 Matrix3 transform = headingTransform.multiply(pitchTransform);
-                g2.translate(getWidth() / 2, getHeight() / 2);
+                g2.translate(getWidth() >> 1, getHeight() >> 1);
                 g2.setColor(Color.BLACK);
 
                 BufferedImage img = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -82,24 +118,40 @@ public class Renderer {
                 double[] zBuffer = new double[img.getWidth() * img.getHeight()];
 
                 // инициализация массива бесконечной глубиной(очко коляна)
-                for (int q = 0; q < zBuffer.length; q++) {
-                    zBuffer[q] = Double.NEGATIVE_INFINITY;
-                }
+                Arrays.fill(zBuffer, Double.NEGATIVE_INFINITY);
 
-                // создание фигуры
-                ArrayList<Triangle> figure = tris;
+
+//                ArrayList<Triangle> tris = sphere(figure, 6);
 
                 for (Triangle t : figure) {
                     Vertex v1 = transform.transform(t.v1);
+                    v1.x += getWidth() >> 1;
+                    v1.y += getHeight() >> 1;
                     Vertex v2 = transform.transform(t.v2);
+                    v2.x += getWidth() >> 1;
+                    v2.y += getHeight() >> 1;
                     Vertex v3 = transform.transform(t.v3);
+                    v3.x += getWidth() >> 1;
+                    v3.y += getHeight() >> 1;
+
+//                    int minZ = (int) Math.max(0, Math.ceil(Math.min(v1.z, Math.min(v2.z, v3.z))));
+//                    int maxZ = (int) Math.min(Double.POSITIVE_INFINITY, Math.floor(Math.max(v1.z, Math.max(v2.z, v3.z))));
+
+//                    if (!t.isFacing) {
+//                        continue;
+//                    }
 
                     // затенение нормали
-                    Vertex ab = new Vertex(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
-                    Vertex ac = new Vertex(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z);
-                    Vertex norm = new Vertex(ab.y * ac.z - ab.z * ac.y,
-                            ab.z * ac.x - ab.x * ac.z,
-                            ab.x * ac.y - ab.y * ac.x);
+                    Vertex norm = t.normal;
+                    if (t.normal == null) {
+                        Vertex ab = new Vertex(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
+                        Vertex ac = new Vertex(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z);
+                        norm = new Vertex(
+                                ab.y * ac.z - ab.z * ac.y,
+                                ab.z * ac.x - ab.x * ac.z,
+                                ab.x * ac.y - ab.y * ac.x
+                        );
+                    }
                     double normalLength = Math.sqrt(norm.x * norm.x + norm.y * norm.y + norm.z * norm.z);
 
                     norm.x /= normalLength;
@@ -108,25 +160,19 @@ public class Renderer {
 
                     double angleCos = Math.abs(norm.z);
 
+                    if (angleCos <= 0.01) {
+                        continue;
+                    }
+
 
                     // рендер граней треугольника через 2Д графику
-                    /*
-                    Path2D path = new Path2D.Double();
-                    path.moveTo(v1.x, v1.y);
-                    path.lineTo(v2.x, v2.y);
-                    path.lineTo(v3.x, v3.y);
-                    path.closePath();
-                    g2.draw(path);
-                     */
+//                    Path2D path = new Path2D.Double();
+//                    path.moveTo(v1.x, v1.y);
+//                    path.lineTo(v2.x, v2.y);
+//                    path.lineTo(v3.x, v3.y);
+//                    path.closePath();
+//                    g2.draw(path);
 
-
-                    // ручная трансляция без 2D графики
-                    v1.x += getWidth() / 2;
-                    v1.y += getHeight() / 2;
-                    v2.x += getWidth() / 2;
-                    v2.y += getHeight() / 2;
-                    v3.x += getWidth() / 2;
-                    v3.y += getHeight() / 2;
 
                     // расчёт и текстурирование треугольников
                     int minX = (int) Math.max(0, Math.ceil(Math.min(v1.x, Math.min(v2.x, v3.x))));
@@ -137,45 +183,23 @@ public class Renderer {
                     double triangleArea = (v1.y - v3.y) * (v2.x - v3.x) + (v2.y - v3.y) * (v3.x - v1.x);
 
 
-                    ExecutorService executor = Executors.newFixedThreadPool(2);
-                    executor.submit(() -> {
-                        for (int y = minY; y <= maxY; y += 2) {
-                            for (int x = minX; x <= maxX; x++) {
-                                double b1 = ((y - v3.y) * (v2.x - v3.x) + (v2.y - v3.y) * (v3.x - x)) / triangleArea;
-                                double b2 = ((y - v1.y) * (v3.x - v1.x) + (v3.y - v1.y) * (v1.x - x)) / triangleArea;
-                                double b3 = ((y - v2.y) * (v1.x - v2.x) + (v1.y - v2.y) * (v2.x - x)) / triangleArea;
-                                if (b1 >= 0 && b1 <= 1 && b2 >= 0 && b2 <= 1 && b3 >= 0 && b3 <= 1) {
-                                    double depth = b1 * v1.z + b2 * v2.z + b3 * v3.z;
-                                    int zIndex = y * img.getWidth() + x;
-                                    if (zBuffer[zIndex] < depth) {
-                                        img.setRGB(x, y, Shades.getShade(t.color, angleCos).getRGB());
-                                        zBuffer[zIndex] = depth;
-                                    }
+                    for (int y = minY; y <= maxY; y++) {
+                        for (int x = minX; x <= maxX; x++) {
+                            double b1 = ((y - v3.y) * (v2.x - v3.x) + (v2.y - v3.y) * (v3.x - x)) / triangleArea;
+                            double b2 = ((y - v1.y) * (v3.x - v1.x) + (v3.y - v1.y) * (v1.x - x)) / triangleArea;
+                            double b3 = ((y - v2.y) * (v1.x - v2.x) + (v1.y - v2.y) * (v2.x - x)) / triangleArea;
+                            if (b1 >= 0 && b1 <= 1 && b2 >= 0 && b2 <= 1 && b3 >= 0 && b3 <= 1) {
+                                double depth = b1 * v1.z + b2 * v2.z + b3 * v3.z;
+                                int zIndex = y * img.getWidth() + x;
+                                if (zBuffer[zIndex] < depth) {
+                                    img.setRGB(x, y, Shades.getShade(t.color, angleCos).getRGB());
+                                    zBuffer[zIndex] = depth;
                                 }
                             }
                         }
-                    });
+                    }
 
-                    executor.submit(() -> {
-                        for (int y = minY + 1; y <= maxY; y += 2) {
-                            for (int x = minX; x <= maxX; x++) {
-                                double b1 = ((y - v3.y) * (v2.x - v3.x) + (v2.y - v3.y) * (v3.x - x)) / triangleArea;
-                                double b2 = ((y - v1.y) * (v3.x - v1.x) + (v3.y - v1.y) * (v1.x - x)) / triangleArea;
-                                double b3 = ((y - v2.y) * (v1.x - v2.x) + (v1.y - v2.y) * (v2.x - x)) / triangleArea;
-                                if (b1 >= 0 && b1 <= 1 && b2 >= 0 && b2 <= 1 && b3 >= 0 && b3 <= 1) {
-                                    double depth = b1 * v1.z + b2 * v2.z + b3 * v3.z;
-                                    int zIndex = y * img.getWidth() + x;
-                                    if (zBuffer[zIndex] < depth) {
-                                        img.setRGB(x, y, Shades.getShade(t.color, angleCos).getRGB());
-                                        zBuffer[zIndex] = depth;
-                                    }
-                                }
-                            }
-                        }
-                    });
-                    executor.shutdown();
-
-                    g2.drawImage(img, -getWidth() / 2, -getHeight() / 2, null);
+                    g2.drawImage(img, -getWidth() >> 1, -getHeight() >> 1, null);
                 }
             }
         };

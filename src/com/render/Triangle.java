@@ -6,12 +6,29 @@ public class Triangle {
     Vertex v1;
     Vertex v2;
     Vertex v3;
+
+    Vertex normal;
     Color color;
+
+    boolean isFacing = true;
+
+    public boolean Unface() {
+        return isFacing = false;
+    }
 
     Triangle(Vertex v1, Vertex v2, Vertex v3, Color color) {
         this.v1 = v1;
         this.v2 = v2;
         this.v3 = v3;
+        this.color = color;
+    }
+
+
+    Triangle(Vertex v1, Vertex v2, Vertex v3, Vertex normal, Color color) {
+        this.v1 = v1;
+        this.v2 = v2;
+        this.v3 = v3;
+        this.normal = normal;
         this.color = color;
     }
 
