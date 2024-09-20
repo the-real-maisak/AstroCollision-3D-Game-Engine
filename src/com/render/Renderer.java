@@ -4,13 +4,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 
 public class Renderer {
+    static int polyCount;
 
 //    ArrayList<Triangle> tris = new ArrayList<>();
 //    double heading = Math.toRadians(headingSlider.getValue());
@@ -51,27 +50,29 @@ public class Renderer {
         ParseObj obj = new ParseObj();
         obj.parse();
         ArrayList<Triangle> figure = obj.getTriangles();
-//        ArrayList<Triangle> figure = new ArrayList<Triangle>() {
+
+
+//        ArrayList<Triangle> figure = new ArrayList<>() {
 //            {
-//                add(new Triangle(new Vertex(100, 100, 100),
-//                        new Vertex(-100, -100, 100),
-//                        new Vertex(-100, 100, -100),
+//                add(new Triangle(new Vertex(100, 100, 100, 1),
+//                        new Vertex(-100, -100, 100, 1),
+//                        new Vertex(-100, 100, -100, 1),
 //                        Color.WHITE));
 //
-//                add(new Triangle(new Vertex(100, 100, 100),
-//                        new Vertex(-100, -100, 100),
-//                        new Vertex(100, -100, -100),
+//                add(new Triangle(new Vertex(100, 100, 100, 1),
+//                        new Vertex(-100, -100, 100, 1),
+//                        new Vertex(100, -100, -100, 1),
 //                        Color.RED));
 //
-//                add(new Triangle(new Vertex(-100, 100, -100),
-//                        new Vertex(100, -100, -100),
-//                        new Vertex(100, 100, 100),
+//                add(new Triangle(new Vertex(-100, 100, -100, 1),
+//                        new Vertex(100, -100, -100, 1),
+//                        new Vertex(100, 100, 100, 1),
 //                        Color.BLUE));
 //
-//                add(new Triangle(new Vertex(-100, 100, -100),
-//                        new Vertex(100, -100, -100),
-//                        new Vertex(-100, -100, 100),
-//                        Color.YELLOW));
+////                add(new Triangle(new Vertex(-100, 100, -100, 1),
+////                        new Vertex(100, -100, -100, 1),
+////                        new Vertex(-100, -100, 100, 1),
+////                        Color.YELLOW));
 //            }
 //        };
 
@@ -81,12 +82,20 @@ public class Renderer {
         pane.setLayout(new BorderLayout());
 
         // слайдер горизольтального вращения
-        JSlider headingSlider = new JSlider(0, 360, 180);
+        JSlider headingSlider = new JSlider(-180, 180, 0);
         pane.add(headingSlider, BorderLayout.SOUTH);
 
         // слайдер верт. вращения
         JSlider pitchSlider = new JSlider(SwingConstants.VERTICAL, -90, 90, 0);
         pane.add(pitchSlider, BorderLayout.EAST);
+
+        // слайдер вращения
+        JSlider rollSlider = new JSlider(SwingConstants.VERTICAL, -90, 90, 0);
+        pane.add(rollSlider, BorderLayout.WEST);
+
+        // слайдер поля зрения
+        JSlider fovSlider = new JSlider(1, 179, 60);
+        pane.add(fovSlider, BorderLayout.NORTH);
 
         //кнопка выхода
 //        JButton exitButton = new JButton("exit");
@@ -101,68 +110,67 @@ public class Renderer {
                 // отрисовка происходит здесь
 
                 double heading = Math.toRadians(headingSlider.getValue());
-                Matrix3 headingTransform = new Matrix3(new double[]{Math.cos(heading), 0, Math.sin(heading),
-                        0, 1, 0,
-                        -Math.sin(heading), 0, Math.cos(heading)});
-                double pitch = Math.toRadians(pitchSlider.getValue());
+                Matrix4 headingTransform = new Matrix4(
+                        new double[][]{
+                                {Math.cos(heading), 0, Math.sin(heading), 0},
+                                {0, 1, 0, 0},
+                                {-Math.sin(heading), 0, Math.cos(heading), 0},
+                                {0, 0, 0, 1}
+                        });
 
-                Matrix3 pitchTransform = new Matrix3(new double[]{1, 0, 0,
-                        0, Math.cos(pitch), Math.sin(pitch),
-                        0, -Math.sin(pitch), Math.cos(pitch)});
-                Matrix3 transform = headingTransform.multiply(pitchTransform);
-                g2.translate(getWidth() >> 1, getHeight() >> 1);
-                g2.setColor(Color.BLACK);
+                double pitch = Math.toRadians(pitchSlider.getValue());
+                Matrix4 pitchTransform = new Matrix4(
+                        new double[][]{
+                                {1, 0, 0, 0},
+                                {0, Math.cos(pitch), Math.sin(pitch), 0},
+                                {0, -Math.sin(pitch), Math.cos(pitch), 0},
+                                {0, 0, 0, 1}
+                        });
+
+                double roll = Math.toRadians(rollSlider.getValue());
+                Matrix4 rollTransform = new Matrix4(
+                        new double[][]{
+                                {Math.cos(roll), Math.sin(roll), 0, 0},
+                                {-Math.sin(roll), Math.cos(roll), 0, 0},
+                                {0, 0, 1, 0},
+                                {0, 0, 0, 1}
+                        });
+
+                Matrix4 panOutTransform = new Matrix4(new double[][]{
+                        {1, 0, 0, 0},
+                        {0, 1, 0, 0},
+                        {0, 0, 1, 0},
+                        {0, 0, -400, 1}
+                });
+
+                double viewportWidth = getWidth();
+                double viewportHeight = getHeight();
+                double fovAngle = Math.toRadians(fovSlider.getValue());
+                double fov = Math.tan(fovAngle / 2) * 170;
+
+                Matrix4 transform = headingTransform
+                        .multiply(pitchTransform)
+                        .multiply(rollTransform)
+                        .multiply(panOutTransform);
+
+
+//                g2.translate(getWidth() >> 1, getHeight() >> 1);
+//                g2.setColor(Color.BLACK);
 
                 BufferedImage img = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
 
                 double[] zBuffer = new double[img.getWidth() * img.getHeight()];
 
-                // инициализация массива бесконечной глубиной(очко коляна)
+                // инициализация массива бесконечной глубиной
                 Arrays.fill(zBuffer, Double.NEGATIVE_INFINITY);
 
 
-//                ArrayList<Triangle> tris = sphere(figure, 6);
+                ArrayList<Triangle> tris = sphere(figure, 3);
 
-                for (Triangle t : figure) {
+                for (Triangle t : tris) {
                     Vertex v1 = transform.transform(t.v1);
-                    v1.x += getWidth() >> 1;
-                    v1.y += getHeight() >> 1;
                     Vertex v2 = transform.transform(t.v2);
-                    v2.x += getWidth() >> 1;
-                    v2.y += getHeight() >> 1;
                     Vertex v3 = transform.transform(t.v3);
-                    v3.x += getWidth() >> 1;
-                    v3.y += getHeight() >> 1;
-
-//                    int minZ = (int) Math.max(0, Math.ceil(Math.min(v1.z, Math.min(v2.z, v3.z))));
-//                    int maxZ = (int) Math.min(Double.POSITIVE_INFINITY, Math.floor(Math.max(v1.z, Math.max(v2.z, v3.z))));
-
-//                    if (!t.isFacing) {
-//                        continue;
-//                    }
-
-                    // затенение нормали
-                    Vertex norm = t.normal;
-                    if (t.normal == null) {
-                        Vertex ab = new Vertex(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
-                        Vertex ac = new Vertex(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z);
-                        norm = new Vertex(
-                                ab.y * ac.z - ab.z * ac.y,
-                                ab.z * ac.x - ab.x * ac.z,
-                                ab.x * ac.y - ab.y * ac.x
-                        );
-                    }
-                    double normalLength = Math.sqrt(norm.x * norm.x + norm.y * norm.y + norm.z * norm.z);
-
-                    norm.x /= normalLength;
-                    norm.y /= normalLength;
-                    norm.z /= normalLength;
-
-                    double angleCos = Math.abs(norm.z);
-
-                    if (angleCos <= 0.01) {
-                        continue;
-                    }
 
 
                     // рендер граней треугольника через 2Д графику
@@ -173,6 +181,45 @@ public class Renderer {
 //                    path.closePath();
 //                    g2.draw(path);
 
+
+                    // затенение нормали
+                    Vertex norm = t.normal;
+                    if (norm == null) {
+                        Vertex ab = new Vertex(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z, v2.w - v1.w);
+                        Vertex ac = new Vertex(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z, v3.w - v1.w);
+                        norm = new Vertex(
+                                ab.y * ac.z - ab.z * ac.y,
+                                ab.z * ac.x - ab.x * ac.z,
+                                ab.x * ac.y - ab.y * ac.x,
+                                1
+                        );
+                    }
+                    double normalLength = Math.sqrt(norm.x * norm.x + norm.y * norm.y + norm.z * norm.z);
+
+                    norm.x /= normalLength;
+                    norm.y /= normalLength;
+                    norm.z /= normalLength;
+
+                    double angleCos = Math.abs(norm.z);
+
+//                    if (norm.z <= 0) {
+//                        continue;
+//                    }
+
+                    v1.y /= (-v1.z) * fov;
+                    v1.x /= (-v1.z) * fov;
+                    v2.x /= (-v2.z) * fov;
+                    v2.y /= (-v2.z) * fov;
+                    v3.x /= (-v3.z) * fov;
+                    v3.y /= (-v3.z) * fov;
+
+
+                    v1.x += viewportWidth / 2;
+                    v1.y += viewportHeight / 2;
+                    v2.x += viewportWidth / 2;
+                    v2.y += viewportHeight / 2;
+                    v3.x += viewportWidth / 2;
+                    v3.y += viewportHeight / 2;
 
                     // расчёт и текстурирование треугольников
                     int minX = (int) Math.max(0, Math.ceil(Math.min(v1.x, Math.min(v2.x, v3.x))));
@@ -198,17 +245,19 @@ public class Renderer {
                             }
                         }
                     }
-
-                    g2.drawImage(img, -getWidth() >> 1, -getHeight() >> 1, null);
                 }
+
+                g2.drawImage(img, 0, 0, null);
             }
         };
+        pane.add(renderPanel, BorderLayout.CENTER);
 
         headingSlider.addChangeListener(e -> renderPanel.repaint());
         pitchSlider.addChangeListener(e -> renderPanel.repaint());
+        rollSlider.addChangeListener(e -> renderPanel.repaint());
+        fovSlider.addChangeListener(e -> renderPanel.repaint());
 
-        pane.add(renderPanel, BorderLayout.CENTER);
-        frame.setSize(400, 400);
+        frame.setSize(800, 600);
         frame.setVisible(true);
 
         //выход по нажатии кнопки
@@ -225,15 +274,15 @@ public class Renderer {
     }
 
 
-    public static ArrayList inflate(ArrayList<Triangle> tris) {
+    public static ArrayList<Triangle> inflate(ArrayList<Triangle> tris) {
         ArrayList<Triangle> result = new ArrayList<>();
         for (Triangle t : tris) {
             Vertex m1 =
-                    new Vertex((t.v1.x + t.v2.x) / 2, (t.v1.y + t.v2.y) / 2, (t.v1.z + t.v2.z) / 2);
+                    new Vertex((t.v1.x + t.v2.x) / 2, (t.v1.y + t.v2.y) / 2, (t.v1.z + t.v2.z) / 2, 1);
             Vertex m2 =
-                    new Vertex((t.v2.x + t.v3.x) / 2, (t.v2.y + t.v3.y) / 2, (t.v2.z + t.v3.z) / 2);
+                    new Vertex((t.v2.x + t.v3.x) / 2, (t.v2.y + t.v3.y) / 2, (t.v2.z + t.v3.z) / 2, 1);
             Vertex m3 =
-                    new Vertex((t.v1.x + t.v3.x) / 2, (t.v1.y + t.v3.y) / 2, (t.v1.z + t.v3.z) / 2);
+                    new Vertex((t.v1.x + t.v3.x) / 2, (t.v1.y + t.v3.y) / 2, (t.v1.z + t.v3.z) / 2, 1);
             result.add(new Triangle(t.v1, m1, m3, t.color));
             result.add(new Triangle(t.v2, m1, m2, t.color));
             result.add(new Triangle(t.v3, m2, m3, t.color));
@@ -251,15 +300,15 @@ public class Renderer {
         return result;
     }
 
-    public static ArrayList sphere(ArrayList<Triangle> tris, int soften) {
+    public static ArrayList<Triangle> sphere(ArrayList<Triangle> tris, int soften) {
         ArrayList<Triangle> result = new ArrayList<>();
         for (Triangle t : tris) {
             Vertex m1 =
-                    new Vertex((t.v1.x + t.v2.x) / 2, (t.v1.y + t.v2.y) / 2, (t.v1.z + t.v2.z) / 2);
+                    new Vertex((t.v1.x + t.v2.x) / 2, (t.v1.y + t.v2.y) / 2, (t.v1.z + t.v2.z) / 2, 1);
             Vertex m2 =
-                    new Vertex((t.v2.x + t.v3.x) / 2, (t.v2.y + t.v3.y) / 2, (t.v2.z + t.v3.z) / 2);
+                    new Vertex((t.v2.x + t.v3.x) / 2, (t.v2.y + t.v3.y) / 2, (t.v2.z + t.v3.z) / 2, 1);
             Vertex m3 =
-                    new Vertex((t.v1.x + t.v3.x) / 2, (t.v1.y + t.v3.y) / 2, (t.v1.z + t.v3.z) / 2);
+                    new Vertex((t.v1.x + t.v3.x) / 2, (t.v1.y + t.v3.y) / 2, (t.v1.z + t.v3.z) / 2, 1);
             result.add(new Triangle(m1, m2, m3, t.color));
             result.add(new Triangle(m1.alternate(m1), m2.alternate(m2), m3.alternate(m3), t.color));
 //            Vertex m4 =
@@ -271,59 +320,11 @@ public class Renderer {
 //            result.add(new Triangle(m4, m5, m6, t.color));
 
         }
-        if (soften > 6) {
-            soften = 5;
-        }
         if (soften < 1) {
             soften = 1;
         }
         for (int i = 0; i < soften; i++) {
             result = inflate(result);
-        }
-        for (Triangle t : result) {
-            for (Vertex v : new Vertex[]{t.v1, t.v2, t.v3}) {
-                double l = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z) / Math.sqrt(30_000);
-                v.x /= l;
-                v.y /= l;
-                v.z /= l;
-            }
-        }
-        return result;
-    }
-
-    public static ArrayList cube(ArrayList<Triangle> tris) {
-        ArrayList<Triangle> polygon = new ArrayList<>();
-
-        polygon.add(new Triangle(new Vertex(-100, -100, -100),
-                new Vertex(100, -100, -100),
-                new Vertex(-100, 100, -100),
-                Color.RED));
-
-        polygon.add(new Triangle(new Vertex(100, 100, -100),
-                new Vertex(-100, 100, -100),
-                new Vertex(100, -100, -100),
-                Color.BLUE));
-
-        ArrayList<Triangle> result = new ArrayList<>();
-        for (Triangle t : polygon) {
-            Vertex m1 =
-                    new Vertex((t.v1.x) / 2, (t.v1.y) / 2, (t.v1.z) / 2);
-            Vertex m2 =
-                    new Vertex((t.v2.x) / 2, (t.v2.y) / 2, (t.v2.z) / 2);
-            Vertex m3 =
-                    new Vertex((t.v3.x) / 2, (t.v3.y) / 2, (t.v3.z) / 2);
-            result.add(new Triangle(m1, m2, m3, t.color));
-            result.add(t.mirror(t));
-//            result.add(t.XAxis(t));
-//            result.add(t.XAxis(t).mirror(t));
-//            Vertex m4 =
-//                    new Vertex(-(t.v1.x ) / 2, -(t.v1.y ) / 2, -(t.v1.z ) / 2);
-//            Vertex m5 =
-//                    new Vertex(-(t.v2.x ) / 2, -(t.v2.y ) / 2, -(t.v2.z ) / 2);
-//            Vertex m6 =
-//                    new Vertex(-(t.v3.x ) / 2, -(t.v3.y ) / 2, -(t.v3.z ) / 2);
-//            result.add(new Triangle(m4, m5, m6, t.color));
-
         }
         for (Triangle t : result) {
             for (Vertex v : new Vertex[]{t.v1, t.v2, t.v3}) {

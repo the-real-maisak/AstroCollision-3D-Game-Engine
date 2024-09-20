@@ -28,26 +28,26 @@ public class ParseObj {
                 path = "C:\\Users\\satan\\Desktop\\test.obj";
                 if (!Paths.get(path).toFile().exists()) {
                     System.out.println("Default file not found! \n loading default object...");
-                    this.triangles = new ArrayList<Triangle>() {
+                    this.triangles = new ArrayList<>() {
                         {
-                            add(new Triangle(new Vertex(100, 100, 100),
-                                    new Vertex(-100, -100, 100),
-                                    new Vertex(-100, 100, -100),
+                            add(new Triangle(new Vertex(100, 100, 100,1),
+                                    new Vertex(-100, -100, 100,1),
+                                    new Vertex(-100, 100, -100,1),
                                     Color.WHITE));
 
-                            add(new Triangle(new Vertex(100, 100, 100),
-                                    new Vertex(-100, -100, 100),
-                                    new Vertex(100, -100, -100),
+                            add(new Triangle(new Vertex(100, 100, 100,1),
+                                    new Vertex(-100, -100, 100,1),
+                                    new Vertex(100, -100, -100,1),
                                     Color.RED));
 
-                            add(new Triangle(new Vertex(-100, 100, -100),
-                                    new Vertex(100, -100, -100),
-                                    new Vertex(100, 100, 100),
+                            add(new Triangle(new Vertex(-100, 100, -100,1),
+                                    new Vertex(100, -100, -100,1),
+                                    new Vertex(100, 100, 100,1),
                                     Color.BLUE));
 
-                            add(new Triangle(new Vertex(-100, 100, -100),
-                                    new Vertex(100, -100, -100),
-                                    new Vertex(-100, -100, 100),
+                            add(new Triangle(new Vertex(-100, 100, -100,1),
+                                    new Vertex(100, -100, -100,1),
+                                    new Vertex(-100, -100, 100,1),
                                     Color.YELLOW));
                         }
                     };
@@ -75,12 +75,12 @@ public class ParseObj {
         }
         for (String vert : verts) {
             String[] parts = vert.split(" ");
-            vertices.add(new Vertex(Double.parseDouble(parts[2])*4, Double.parseDouble(parts[3])*4, Double.parseDouble(parts[4])*4));
+            vertices.add(new Vertex(Double.parseDouble(parts[2])*5, Double.parseDouble(parts[3])*5, Double.parseDouble(parts[4])*5, 1));
         }
 
         for (String norm : norms) {
             String[] parts = norm.split(" ");
-            normals.add(new Vertex(Double.parseDouble(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3])));
+            normals.add(new Vertex(Double.parseDouble(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]), 1));
         }
 
         for (String poly : polys) {
@@ -97,22 +97,24 @@ public class ParseObj {
                     vertices.get((polygon.c1.v) - 1),
                     vertices.get((polygon.c2.v) - 1),
                     vertices.get((polygon.c3.v) - 1),
-//                    new Vertex(
-//                            normals.get((polygon.c1.vn) - 1).y * normals.get((polygon.c2.vn) - 1).z - normals.get((polygon.c1.vn) - 1).z * normals.get((polygon.c2.vn) - 1).y,
-//                            normals.get((polygon.c1.vn) - 1).z * normals.get((polygon.c2.vn) - 1).x - normals.get((polygon.c1.vn) - 1).x * normals.get((polygon.c2.vn) - 1).z,
-//                            normals.get((polygon.c1.vn) - 1).x * normals.get((polygon.c2.vn) - 1).y - normals.get((polygon.c1.vn) - 1).y * normals.get((polygon.c2.vn) - 1).x
-//                    ),
+                    new Vertex(
+                            normals.get((polygon.c1.vn) - 1).x * normals.get((polygon.c2.vn) - 1).y - normals.get((polygon.c1.vn) - 1).y * normals.get((polygon.c2.vn) - 1).x,
+                            normals.get((polygon.c1.vn) - 1).y * normals.get((polygon.c2.vn) - 1).z - normals.get((polygon.c1.vn) - 1).z * normals.get((polygon.c2.vn) - 1).y,
+                            normals.get((polygon.c1.vn) - 1).z * normals.get((polygon.c2.vn) - 1).x - normals.get((polygon.c1.vn) - 1).x * normals.get((polygon.c2.vn) - 1).z,
+                            1
+                    ),
                     Color.WHITE
             ));
             triangles.add(new Triangle(
                     vertices.get((polygon.c1.v) - 1),
                     vertices.get((polygon.c3.v) - 1),
                     vertices.get((polygon.c4.v) - 1),
-//                    new Vertex(
-//                            normals.get((polygon.c4.vn) - 1).y * normals.get((polygon.c3.vn) - 1).z - normals.get((polygon.c4.vn) - 1).z * normals.get((polygon.c3.vn) - 1).y,
-//                            normals.get((polygon.c4.vn) - 1).z * normals.get((polygon.c3.vn) - 1).x - normals.get((polygon.c4.vn) - 1).x * normals.get((polygon.c3.vn) - 1).z,
-//                            normals.get((polygon.c4.vn) - 1).x * normals.get((polygon.c3.vn) - 1).y - normals.get((polygon.c4.vn) - 1).y * normals.get((polygon.c3.vn) - 1).x
-//                    ),
+                    new Vertex(
+                            normals.get((polygon.c4.vn) - 1).x * normals.get((polygon.c3.vn) - 1).y - normals.get((polygon.c4.vn) - 1).y * normals.get((polygon.c3.vn) - 1).x,
+                            normals.get((polygon.c4.vn) - 1).y * normals.get((polygon.c3.vn) - 1).z - normals.get((polygon.c4.vn) - 1).z * normals.get((polygon.c3.vn) - 1).y,
+                            normals.get((polygon.c4.vn) - 1).z * normals.get((polygon.c3.vn) - 1).x - normals.get((polygon.c4.vn) - 1).x * normals.get((polygon.c3.vn) - 1).z,
+                            1
+                    ),
                     Color.WHITE
             ));
         }
