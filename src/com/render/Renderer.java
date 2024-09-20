@@ -7,6 +7,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Renderer {
     static int polyCount;
@@ -52,29 +53,68 @@ public class Renderer {
         ArrayList<Triangle> figure = obj.getTriangles();
 
 
-//        ArrayList<Triangle> figure = new ArrayList<>() {
-//            {
-//                add(new Triangle(new Vertex(100, 100, 100, 1),
-//                        new Vertex(-100, -100, 100, 1),
-//                        new Vertex(-100, 100, -100, 1),
-//                        Color.WHITE));
-//
-//                add(new Triangle(new Vertex(100, 100, 100, 1),
-//                        new Vertex(-100, -100, 100, 1),
-//                        new Vertex(100, -100, -100, 1),
-//                        Color.RED));
-//
-//                add(new Triangle(new Vertex(-100, 100, -100, 1),
-//                        new Vertex(100, -100, -100, 1),
-//                        new Vertex(100, 100, 100, 1),
-//                        Color.BLUE));
-//
-////                add(new Triangle(new Vertex(-100, 100, -100, 1),
-////                        new Vertex(100, -100, -100, 1),
-////                        new Vertex(-100, -100, 100, 1),
-////                        Color.YELLOW));
-//            }
-//        };
+        List<Triangle> tris = new ArrayList<>();
+        //A
+        tris.add(new Triangle(new Vertex(-100, 100, 100, 1),
+                new Vertex(100, 100, 100, 1),
+                new Vertex(-100, 100, -100, 1),
+                Color.PINK));
+        //B
+        tris.add(new Triangle(new Vertex(100, 100, 100, 1),
+                new Vertex(100, 100, -100, 1),
+                new Vertex(-100, 100, -100, 1),
+                Color.PINK));
+        //C
+        tris.add(new Triangle(new Vertex(100, -100, 100, 1),
+                new Vertex(100, 100, -100, 1),
+                new Vertex(100, 100, 100, 1),
+                Color.GREEN));
+        //D
+        tris.add(new Triangle(new Vertex(100, -100, 100, 1),
+                new Vertex(100, -100, -100, 1),
+                new Vertex(100, 100, -100, 1),
+                Color.GREEN));
+        //E
+        tris.add(new Triangle(new Vertex(-100, -100, 100, 1),
+                new Vertex(100, -100, 100, 1),
+                new Vertex(-100, 100, 100, 1),
+                Color.YELLOW));
+
+        //F
+        tris.add(new Triangle(new Vertex(100, -100, 100, 1),
+                new Vertex(100, 100, 100, 1),
+                new Vertex(-100, 100, 100, 1),
+                Color.YELLOW));
+        //G
+        tris.add(new Triangle(new Vertex(-100, -100, 100, 1),
+                new Vertex(-100, 100, 100, 1),
+                new Vertex(-100, -100, -100, 1),
+                Color.RED));
+        //H
+        tris.add(new Triangle(new Vertex(-100, 100, 100, 1),
+                new Vertex(-100, 100, -100, 1),
+                new Vertex(-100, -100, -100, 1),
+                Color.RED));
+        //I
+        tris.add(new Triangle(new Vertex(-100, 100, -100, 1),
+                new Vertex(100, 100, -100, 1),
+                new Vertex(-100, -100, -100, 1),
+                Color.BLUE));
+        //J
+        tris.add(new Triangle(new Vertex(-100, -100, -100, 1),
+                new Vertex(100, 100, -100, 1),
+                new Vertex(100, -100, -100, 1),
+                Color.BLUE));
+        //K
+        tris.add(new Triangle(new Vertex(100, -100, 100, 1),
+                new Vertex(-100, -100, 100, 1),
+                new Vertex(-100, -100, -100, 1),
+                Color.WHITE));
+        //L
+        tris.add(new Triangle(new Vertex(-100, -100, -100, 1),
+                new Vertex(100, -100, -100, 1),
+                new Vertex(100, -100, 100, 1),
+                Color.WHITE));
 
 
         JFrame frame = new JFrame();
@@ -97,9 +137,6 @@ public class Renderer {
         JSlider fovSlider = new JSlider(1, 179, 60);
         pane.add(fovSlider, BorderLayout.NORTH);
 
-        //кнопка выхода
-//        JButton exitButton = new JButton("exit");
-//        pane.add(exitButton, BorderLayout.NORTH);
 
         // панель для рендера
         JPanel renderPanel = new JPanel() {
@@ -136,12 +173,13 @@ public class Renderer {
                                 {0, 0, 0, 1}
                         });
 
-                Matrix4 panOutTransform = new Matrix4(new double[][]{
-                        {1, 0, 0, 0},
-                        {0, 1, 0, 0},
-                        {0, 0, 1, 0},
-                        {0, 0, -400, 1}
-                });
+                Matrix4 panOutTransform = new Matrix4(
+                        new double[][]{
+                                {1, 0, 0, 0},
+                                {0, 1, 0, 0},
+                                {0, 0, 1, 0},
+                                {0, 0, -400, 1}
+                        });
 
                 double viewportWidth = getWidth();
                 double viewportHeight = getHeight();
@@ -165,9 +203,7 @@ public class Renderer {
                 Arrays.fill(zBuffer, Double.NEGATIVE_INFINITY);
 
 
-                ArrayList<Triangle> tris = sphere(figure, 3);
-
-                for (Triangle t : tris) {
+                for (Triangle t : figure) {
                     Vertex v1 = transform.transform(t.v1);
                     Vertex v2 = transform.transform(t.v2);
                     Vertex v3 = transform.transform(t.v3);
@@ -183,35 +219,35 @@ public class Renderer {
 
 
                     // затенение нормали
-                    Vertex norm = t.normal;
-                    if (norm == null) {
-                        Vertex ab = new Vertex(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z, v2.w - v1.w);
-                        Vertex ac = new Vertex(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z, v3.w - v1.w);
-                        norm = new Vertex(
-                                ab.y * ac.z - ab.z * ac.y,
-                                ab.z * ac.x - ab.x * ac.z,
-                                ab.x * ac.y - ab.y * ac.x,
-                                1
-                        );
-                    }
+
+                    Vertex ab = new Vertex(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z, v2.w - v1.w);
+                    Vertex ac = new Vertex(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z, v3.w - v1.w);
+                    Vertex norm = new Vertex(
+                            ab.y * ac.z - ab.z * ac.y,
+                            ab.z * ac.x - ab.x * ac.z,
+                            ab.x * ac.y - ab.y * ac.x,
+                            1
+                    );
+
                     double normalLength = Math.sqrt(norm.x * norm.x + norm.y * norm.y + norm.z * norm.z);
 
                     norm.x /= normalLength;
                     norm.y /= normalLength;
                     norm.z /= normalLength;
 
+                    // проверка на видимость
+                    if (norm.z < 0) {
+                        continue;
+                    }
+
                     double angleCos = Math.abs(norm.z);
 
-//                    if (norm.z <= 0) {
-//                        continue;
-//                    }
-
-                    v1.y /= (-v1.z) * fov;
-                    v1.x /= (-v1.z) * fov;
-                    v2.x /= (-v2.z) * fov;
-                    v2.y /= (-v2.z) * fov;
-                    v3.x /= (-v3.z) * fov;
-                    v3.y /= (-v3.z) * fov;
+                    v1.x = v1.x / (-v1.z) * fov;
+                    v1.y = v1.y / (-v1.z) * fov;
+                    v2.x = v2.x / (-v2.z) * fov;
+                    v2.y = v2.y / (-v2.z) * fov;
+                    v3.x = v3.x / (-v3.z) * fov;
+                    v3.y = v3.y / (-v3.z) * fov;
 
 
                     v1.x += viewportWidth / 2;
@@ -260,7 +296,11 @@ public class Renderer {
         frame.setSize(800, 600);
         frame.setVisible(true);
 
-        //выход по нажатии кнопки
+//        //кнопка выхода
+//        JButton exitButton = new JButton("exit");
+//        pane.add(exitButton);
+//
+//        //выход по нажатии кнопки
 //        exitButton.addActionListener(e -> System.exit(0));
 
         //выход при закрытии окна

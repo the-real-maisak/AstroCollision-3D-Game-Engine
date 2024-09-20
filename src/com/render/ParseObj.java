@@ -19,7 +19,7 @@ public class ParseObj {
             System.out.print("Enter path to obj file: ");
             path = scanner.nextLine();
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
 
         try {
@@ -55,7 +55,7 @@ public class ParseObj {
                 }
             }
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
 
         ArrayList<Vertex> vertices = new ArrayList<>();
@@ -71,7 +71,7 @@ public class ParseObj {
             polys = Files.readAllLines(Path.of(path)).stream().filter(s -> s.startsWith("f ")).toList();
             norms = Files.readAllLines(Path.of(path)).stream().filter(s -> s.startsWith("vn ")).toList();
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
         for (String vert : verts) {
             String[] parts = vert.split(" ");
@@ -97,25 +97,13 @@ public class ParseObj {
                     vertices.get((polygon.c1.v) - 1),
                     vertices.get((polygon.c2.v) - 1),
                     vertices.get((polygon.c3.v) - 1),
-                    new Vertex(
-                            normals.get((polygon.c1.vn) - 1).x * normals.get((polygon.c2.vn) - 1).y - normals.get((polygon.c1.vn) - 1).y * normals.get((polygon.c2.vn) - 1).x,
-                            normals.get((polygon.c1.vn) - 1).y * normals.get((polygon.c2.vn) - 1).z - normals.get((polygon.c1.vn) - 1).z * normals.get((polygon.c2.vn) - 1).y,
-                            normals.get((polygon.c1.vn) - 1).z * normals.get((polygon.c2.vn) - 1).x - normals.get((polygon.c1.vn) - 1).x * normals.get((polygon.c2.vn) - 1).z,
-                            1
-                    ),
                     Color.WHITE
             ));
             triangles.add(new Triangle(
                     vertices.get((polygon.c1.v) - 1),
                     vertices.get((polygon.c3.v) - 1),
                     vertices.get((polygon.c4.v) - 1),
-                    new Vertex(
-                            normals.get((polygon.c4.vn) - 1).x * normals.get((polygon.c3.vn) - 1).y - normals.get((polygon.c4.vn) - 1).y * normals.get((polygon.c3.vn) - 1).x,
-                            normals.get((polygon.c4.vn) - 1).y * normals.get((polygon.c3.vn) - 1).z - normals.get((polygon.c4.vn) - 1).z * normals.get((polygon.c3.vn) - 1).y,
-                            normals.get((polygon.c4.vn) - 1).z * normals.get((polygon.c3.vn) - 1).x - normals.get((polygon.c4.vn) - 1).x * normals.get((polygon.c3.vn) - 1).z,
-                            1
-                    ),
-                    Color.WHITE
+                    Color.ORANGE
             ));
         }
         this.triangles = triangles;
