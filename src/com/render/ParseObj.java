@@ -24,33 +24,13 @@ public class ParseObj {
 
         try {
             if (!Paths.get(path).toFile().exists()) {
-                System.out.println("File not found! \n loading default file...");
+                System.out.println("File not found! \n loading default file...\n");
                 path = "C:\\Users\\satan\\Desktop\\test.obj";
                 if (!Paths.get(path).toFile().exists()) {
                     System.out.println("Default file not found! \n loading default object...");
-                    this.triangles = new ArrayList<>() {
-                        {
-                            add(new Triangle(new Vertex(100, 100, 100,1),
-                                    new Vertex(-100, -100, 100,1),
-                                    new Vertex(-100, 100, -100,1),
-                                    Color.WHITE));
-
-                            add(new Triangle(new Vertex(100, 100, 100,1),
-                                    new Vertex(-100, -100, 100,1),
-                                    new Vertex(100, -100, -100,1),
-                                    Color.RED));
-
-                            add(new Triangle(new Vertex(-100, 100, -100,1),
-                                    new Vertex(100, -100, -100,1),
-                                    new Vertex(100, 100, 100,1),
-                                    Color.BLUE));
-
-                            add(new Triangle(new Vertex(-100, 100, -100,1),
-                                    new Vertex(100, -100, -100,1),
-                                    new Vertex(-100, -100, 100,1),
-                                    Color.YELLOW));
-                        }
-                    };
+                    System.out.println("Choose default object: 1(cube) / 2(sphere with inflation): \n");
+                    this.triangles = Transformer.getTris();
+//                    this.triangles = Transformer.getTris2();
                     return;
                 }
             }

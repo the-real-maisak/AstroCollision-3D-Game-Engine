@@ -2,47 +2,17 @@ package com.render;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class Renderer {
-    static int polyCount;
-
-//    ArrayList<Triangle> tris = new ArrayList<>();
-//    double heading = Math.toRadians(headingSlider.getValue());
-
-//    private Thread thread;
-//    boolean isRunning = false;
-//
-//    private void start() {
-//        if (isRunning)
-//            return;
-//        isRunning = true;
-//        thread = new Thread(this.thread);
-//        thread.start();
-//    }
-//
-//    private void stop() {
-//        if (!isRunning)
-//            return;
-//        isRunning = false;
-//        try {
-//            thread.join();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//            System.exit(0);
-//        }
-//    }
-//
-//    public void run() {
-//        while (isRunning) {
-//
-//        }
-//    }
 
     public static void main(String[] args) {
 
@@ -53,73 +23,10 @@ public class Renderer {
         ArrayList<Triangle> figure = obj.getTriangles();
 
 
-        List<Triangle> tris = new ArrayList<>();
-        //A
-        tris.add(new Triangle(new Vertex(-100, 100, 100, 1),
-                new Vertex(100, 100, 100, 1),
-                new Vertex(-100, 100, -100, 1),
-                Color.PINK));
-        //B
-        tris.add(new Triangle(new Vertex(100, 100, 100, 1),
-                new Vertex(100, 100, -100, 1),
-                new Vertex(-100, 100, -100, 1),
-                Color.PINK));
-        //C
-        tris.add(new Triangle(new Vertex(100, -100, 100, 1),
-                new Vertex(100, 100, -100, 1),
-                new Vertex(100, 100, 100, 1),
-                Color.GREEN));
-        //D
-        tris.add(new Triangle(new Vertex(100, -100, 100, 1),
-                new Vertex(100, -100, -100, 1),
-                new Vertex(100, 100, -100, 1),
-                Color.GREEN));
-        //E
-        tris.add(new Triangle(new Vertex(-100, -100, 100, 1),
-                new Vertex(100, -100, 100, 1),
-                new Vertex(-100, 100, 100, 1),
-                Color.YELLOW));
-
-        //F
-        tris.add(new Triangle(new Vertex(100, -100, 100, 1),
-                new Vertex(100, 100, 100, 1),
-                new Vertex(-100, 100, 100, 1),
-                Color.YELLOW));
-        //G
-        tris.add(new Triangle(new Vertex(-100, -100, 100, 1),
-                new Vertex(-100, 100, 100, 1),
-                new Vertex(-100, -100, -100, 1),
-                Color.RED));
-        //H
-        tris.add(new Triangle(new Vertex(-100, 100, 100, 1),
-                new Vertex(-100, 100, -100, 1),
-                new Vertex(-100, -100, -100, 1),
-                Color.RED));
-        //I
-        tris.add(new Triangle(new Vertex(-100, 100, -100, 1),
-                new Vertex(100, 100, -100, 1),
-                new Vertex(-100, -100, -100, 1),
-                Color.BLUE));
-        //J
-        tris.add(new Triangle(new Vertex(-100, -100, -100, 1),
-                new Vertex(100, 100, -100, 1),
-                new Vertex(100, -100, -100, 1),
-                Color.BLUE));
-        //K
-        tris.add(new Triangle(new Vertex(100, -100, 100, 1),
-                new Vertex(-100, -100, 100, 1),
-                new Vertex(-100, -100, -100, 1),
-                Color.WHITE));
-        //L
-        tris.add(new Triangle(new Vertex(-100, -100, -100, 1),
-                new Vertex(100, -100, -100, 1),
-                new Vertex(100, -100, 100, 1),
-                Color.WHITE));
-
-
         JFrame frame = new JFrame();
         Container pane = frame.getContentPane();
         pane.setLayout(new BorderLayout());
+
 
         // слайдер горизольтального вращения
         JSlider headingSlider = new JSlider(-180, 180, 0);
@@ -137,6 +44,11 @@ public class Renderer {
         JSlider fovSlider = new JSlider(1, 179, 60);
         pane.add(fovSlider, BorderLayout.NORTH);
 
+        JSlider positionYSlider = new JSlider(SwingConstants.VERTICAL,-90, 90, 0);
+        pane.add(positionYSlider, BorderLayout.CENTER);
+
+        JSlider positionXSlider = new JSlider(-90, 90, 0);
+        pane.add(positionXSlider, BorderLayout.CENTER);
 
         // панель для рендера
         JPanel renderPanel = new JPanel() {
@@ -153,7 +65,8 @@ public class Renderer {
                                 {0, 1, 0, 0},
                                 {-Math.sin(heading), 0, Math.cos(heading), 0},
                                 {0, 0, 0, 1}
-                        });
+                        }
+                );
 
                 double pitch = Math.toRadians(pitchSlider.getValue());
                 Matrix4 pitchTransform = new Matrix4(
@@ -162,7 +75,8 @@ public class Renderer {
                                 {0, Math.cos(pitch), Math.sin(pitch), 0},
                                 {0, -Math.sin(pitch), Math.cos(pitch), 0},
                                 {0, 0, 0, 1}
-                        });
+                        }
+                );
 
                 double roll = Math.toRadians(rollSlider.getValue());
                 Matrix4 rollTransform = new Matrix4(
@@ -171,7 +85,8 @@ public class Renderer {
                                 {-Math.sin(roll), Math.cos(roll), 0, 0},
                                 {0, 0, 1, 0},
                                 {0, 0, 0, 1}
-                        });
+                        }
+                );
 
                 Matrix4 panOutTransform = new Matrix4(
                         new double[][]{
@@ -179,7 +94,19 @@ public class Renderer {
                                 {0, 1, 0, 0},
                                 {0, 0, 1, 0},
                                 {0, 0, -400, 1}
-                        });
+                        }
+                );
+
+                double YPos = Math.toRadians(positionYSlider.getValue());
+                double XPos = Math.toRadians(positionXSlider.getValue());
+                Matrix4 positionYTranslation = new Matrix4(
+                        new double[][]{
+                                {1, 0, 0, 0},
+                                {0, 1, 0, 0},
+                                {0, 0, 1, 0},
+                                {XPos*100, YPos*100, 0, 1}
+                        }
+                );
 
                 double viewportWidth = getWidth();
                 double viewportHeight = getHeight();
@@ -189,11 +116,15 @@ public class Renderer {
                 Matrix4 transform = headingTransform
                         .multiply(pitchTransform)
                         .multiply(rollTransform)
-                        .multiply(panOutTransform);
+                        .multiply(panOutTransform)
+                        .multiply(positionYTranslation)
+                        ;
 
 
-//                g2.translate(getWidth() >> 1, getHeight() >> 1);
-//                g2.setColor(Color.BLACK);
+                g2.setColor(Color.BLACK);
+//                Path2D path = new Path2D.Double();
+//                Path2D path2 = new Path2D.Double();
+
 
                 BufferedImage img = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
 
@@ -209,17 +140,14 @@ public class Renderer {
                     Vertex v3 = transform.transform(t.v3);
 
 
-                    // рендер граней треугольника через 2Д графику
-//                    Path2D path = new Path2D.Double();
-//                    path.moveTo(v1.x, v1.y);
-//                    path.lineTo(v2.x, v2.y);
-//                    path.lineTo(v3.x, v3.y);
-//                    path.closePath();
-//                    g2.draw(path);
-
+                    v1.x = v1.x / (-v1.z) * fov;
+                    v1.y = v1.y / (-v1.z) * fov;
+                    v2.x = v2.x / (-v2.z) * fov;
+                    v2.y = v2.y / (-v2.z) * fov;
+                    v3.x = v3.x / (-v3.z) * fov;
+                    v3.y = v3.y / (-v3.z) * fov;
 
                     // затенение нормали
-
                     Vertex ab = new Vertex(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z, v2.w - v1.w);
                     Vertex ac = new Vertex(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z, v3.w - v1.w);
                     Vertex norm = new Vertex(
@@ -239,15 +167,6 @@ public class Renderer {
                     if (norm.z < 0) {
                         continue;
                     }
-
-                    double angleCos = Math.abs(norm.z);
-
-                    v1.x = v1.x / (-v1.z) * fov;
-                    v1.y = v1.y / (-v1.z) * fov;
-                    v2.x = v2.x / (-v2.z) * fov;
-                    v2.y = v2.y / (-v2.z) * fov;
-                    v3.x = v3.x / (-v3.z) * fov;
-                    v3.y = v3.y / (-v3.z) * fov;
 
 
                     v1.x += viewportWidth / 2;
@@ -275,105 +194,52 @@ public class Renderer {
                                 double depth = b1 * v1.z + b2 * v2.z + b3 * v3.z;
                                 int zIndex = y * img.getWidth() + x;
                                 if (zBuffer[zIndex] < depth) {
-                                    img.setRGB(x, y, Shades.getShade(t.color, angleCos).getRGB());
+                                    img.setRGB(x, y, Shades.getShade(t.color, norm.z).getRGB());
                                     zBuffer[zIndex] = depth;
                                 }
                             }
                         }
                     }
+                    // рендер граней треугольника через 2Д графику
+//                    path.moveTo(v1.x, v1.y);
+//                    path.lineTo(v2.x, v2.y);
+//                    path.lineTo(v3.x, v3.y);
+//                    path.closePath();
+//
+//
+//
+//                    g2.setColor(Color.RED);
+//                    path2.moveTo(v1.x, v1.y);
+//                    path2.lineTo(v1.x/-norm.z, v1.y/-norm.z);
+//                    path2.closePath();
+//                    path2.moveTo(v2.x, v2.y);
+//                    path2.lineTo(v2.x/-norm.z, v1.y/-norm.z);
+//                    path2.closePath();
+//                    path2.moveTo(v3.x, v3.y);
+//                    path2.lineTo(v3.x/-norm.z, v3.y/-norm.z);
+//                    path2.closePath();
                 }
 
                 g2.drawImage(img, 0, 0, null);
+
+//                g2.draw(path);
+//                g2.draw(path2);
             }
         };
-        pane.add(renderPanel, BorderLayout.CENTER);
+        pane.add(renderPanel, FlowLayout.RIGHT);
 
         headingSlider.addChangeListener(e -> renderPanel.repaint());
         pitchSlider.addChangeListener(e -> renderPanel.repaint());
         rollSlider.addChangeListener(e -> renderPanel.repaint());
         fovSlider.addChangeListener(e -> renderPanel.repaint());
 
+        positionXSlider.addChangeListener(e -> renderPanel.repaint());
+        positionYSlider.addChangeListener(e -> renderPanel.repaint());
+
         frame.setSize(800, 600);
         frame.setVisible(true);
 
-//        //кнопка выхода
-//        JButton exitButton = new JButton("exit");
-//        pane.add(exitButton);
-//
-//        //выход по нажатии кнопки
-//        exitButton.addActionListener(e -> System.exit(0));
-
         //выход при закрытии окна
-        frame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                frame.dispose();
-                System.exit(0);
-            }
-        });
-    }
-
-
-    public static ArrayList<Triangle> inflate(ArrayList<Triangle> tris) {
-        ArrayList<Triangle> result = new ArrayList<>();
-        for (Triangle t : tris) {
-            Vertex m1 =
-                    new Vertex((t.v1.x + t.v2.x) / 2, (t.v1.y + t.v2.y) / 2, (t.v1.z + t.v2.z) / 2, 1);
-            Vertex m2 =
-                    new Vertex((t.v2.x + t.v3.x) / 2, (t.v2.y + t.v3.y) / 2, (t.v2.z + t.v3.z) / 2, 1);
-            Vertex m3 =
-                    new Vertex((t.v1.x + t.v3.x) / 2, (t.v1.y + t.v3.y) / 2, (t.v1.z + t.v3.z) / 2, 1);
-            result.add(new Triangle(t.v1, m1, m3, t.color));
-            result.add(new Triangle(t.v2, m1, m2, t.color));
-            result.add(new Triangle(t.v3, m2, m3, t.color));
-            result.add(new Triangle(m1, m2, m3, t.color));
-        }
-        for (Triangle t : result) {
-            for (Vertex v : new Vertex[]{t.v1, t.v2, t.v3}) {
-                double l = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z) / Math.sqrt(30_000);
-                v.x /= l;
-                v.y /= l;
-                v.z /= l;
-            }
-        }
-
-        return result;
-    }
-
-    public static ArrayList<Triangle> sphere(ArrayList<Triangle> tris, int soften) {
-        ArrayList<Triangle> result = new ArrayList<>();
-        for (Triangle t : tris) {
-            Vertex m1 =
-                    new Vertex((t.v1.x + t.v2.x) / 2, (t.v1.y + t.v2.y) / 2, (t.v1.z + t.v2.z) / 2, 1);
-            Vertex m2 =
-                    new Vertex((t.v2.x + t.v3.x) / 2, (t.v2.y + t.v3.y) / 2, (t.v2.z + t.v3.z) / 2, 1);
-            Vertex m3 =
-                    new Vertex((t.v1.x + t.v3.x) / 2, (t.v1.y + t.v3.y) / 2, (t.v1.z + t.v3.z) / 2, 1);
-            result.add(new Triangle(m1, m2, m3, t.color));
-            result.add(new Triangle(m1.alternate(m1), m2.alternate(m2), m3.alternate(m3), t.color));
-//            Vertex m4 =
-//                    new Vertex(-(t.v1.x + t.v2.x) / 2, -(t.v1.y + t.v2.y) / 2, -(t.v1.z + t.v2.z) / 2);
-//            Vertex m5 =
-//                    new Vertex(-(t.v2.x + t.v3.x) / 2, -(t.v2.y + t.v3.y) / 2, -(t.v2.z + t.v3.z) / 2);
-//            Vertex m6 =
-//                    new Vertex(-(t.v1.x + t.v3.x) / 2, -(t.v1.y + t.v3.y) / 2, -(t.v1.z + t.v3.z) / 2);
-//            result.add(new Triangle(m4, m5, m6, t.color));
-
-        }
-        if (soften < 1) {
-            soften = 1;
-        }
-        for (int i = 0; i < soften; i++) {
-            result = inflate(result);
-        }
-        for (Triangle t : result) {
-            for (Vertex v : new Vertex[]{t.v1, t.v2, t.v3}) {
-                double l = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z) / Math.sqrt(30_000);
-                v.x /= l;
-                v.y /= l;
-                v.z /= l;
-            }
-        }
-        return result;
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 }
